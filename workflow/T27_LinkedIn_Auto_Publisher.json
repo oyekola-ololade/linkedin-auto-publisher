@@ -1,0 +1,466 @@
+{
+  "name": "T27_LinkedIn_Auto_Publisher",
+  "nodes": [
+    {
+      "id": "36a55fe9-fc54-430f-8459-854077676969",
+      "name": "Note_661f313d",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        50,
+        50
+      ],
+      "parameters": {
+        "content": "Created by Oyekola Ololade\nhttps://www.linkedin.com/in/ololade-oyekola-5b1797397/\nn8n Template Library - Gumroad",
+        "width": 300,
+        "height": 100,
+        "color": 4
+      }
+    },
+    {
+      "id": "c5d90a56-c0b7-42c3-ad94-5554bbbdc92a",
+      "name": "LinkedIn Schedule Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ],
+      "webhookId": "e573641c-2766-4365-9ddc-8ed96a8a73f8",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "linkedin-scheduler",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "2820daa5-af16-40c9-8c3c-ee5f77e28b34",
+      "name": "Extract Post",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        450,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d99b61b3-7d65-4528-a569-103d99097488",
+              "name": "content",
+              "value": "={{ $json.body.content }}",
+              "type": "string"
+            },
+            {
+              "id": "4bee84a1-838f-469c-b86c-5f5cd7aa6ccf",
+              "name": "media_url",
+              "value": "={{ $json.body.media_url }}",
+              "type": "string"
+            },
+            {
+              "id": "cca6649a-78ac-4f74-a15b-2e069284c73f",
+              "name": "scheduled_time",
+              "value": "={{ $json.body.scheduled_time }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "54ee9a8b-1466-4dbe-88d1-2f0e9d7f4b41",
+      "name": "Time to Post?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        650,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "3e56c0cf-fbb3-4b99-a629-cd7401560182",
+              "leftValue": "={{ $now.format('HH:mm') }}",
+              "rightValue": "={{ $json.scheduled_time }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "0eda2459-56ee-488a-b61f-6f8027b5c641",
+      "name": "Post to LinkedIn",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        850,
+        200
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.linkedin.com/v2/ugcPosts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_LINKEDIN_TOKEN"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Restli-Protocol-Version",
+              "value": "2.0.0"
+            }
+          ]
+        },
+        "options": {},
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "author",
+              "value": "urn:li:person:YOUR_PERSON_ID"
+            },
+            {
+              "name": "lifecycleState",
+              "value": "PUBLISHED"
+            },
+            {
+              "name": "specificContent",
+              "value": "{\"com.linkedin.ugc.ShareContent\": {\"shareCommentary\": {\"text\": \"{{ $json.content }}\"}, \"shareMediaCategory\": \"NONE\"}}"
+            },
+            {
+              "name": "visibility",
+              "value": "{\"com.linkedin.ugc.MemberNetworkVisibility\": \"PUBLIC\"}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "faf626b9-8338-4d64-8e87-c7fea8519745",
+      "name": "Track Post",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1050,
+        200
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6163dd04-f59d-4461-badc-1091b82268a7",
+              "name": "post_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "9236e734-73f6-4338-8364-41cd740ede52",
+              "name": "status",
+              "value": "posted",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "3bf0e674-332d-49a3-8728-05f6ddc5a89d",
+      "name": "Wait 24h",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1050,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9817e46c-3064-4822-acdd-ea738e806ebf",
+              "name": "wait",
+              "value": "24 hours",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "b1b8bba3-6783-4017-83e3-264cbb721019",
+      "name": "Fetch Engagement",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1250,
+        300
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "YOUR_LINKEDIN_ANALYTICS_URL/{{ $json.post_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_LINKEDIN_TOKEN"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "7c880b10-0e69-41a4-b99c-c3f08ce44409",
+      "name": "Parse Engagement",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1450,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7eeda0b0-1262-4b3f-922e-20790ceafa11",
+              "name": "reactions",
+              "value": "={{ $json.reactions }}",
+              "type": "string"
+            },
+            {
+              "id": "f4cdbe7f-a78d-4007-803a-9fa908258ac5",
+              "name": "comments",
+              "value": "={{ $json.comments }}",
+              "type": "string"
+            },
+            {
+              "id": "55412ef3-16f0-41a2-a8f5-384e08ac3733",
+              "name": "shares",
+              "value": "={{ $json.shares }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "d81337d9-7cbf-42a9-9920-9006db7255eb",
+      "name": "Weekly Report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1650,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "YOUR_SLACK_WEBHOOK_URL",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": false,
+        "headerParameters": {
+          "parameters": []
+        },
+        "options": {},
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text",
+              "value": "=\"Your top post this week: \" + $json.content + \" | Engagement: \" + $json.reactions + \" reactions\""
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "c17428e9-c274-4107-8053-15bbb99bc84b",
+      "name": "Not Yet",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        850,
+        400
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "65942384-13cc-4276-bcc0-7777ee9a05dc",
+              "name": "status",
+              "value": "scheduled",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "abce4fe6-2f0d-413b-a6f4-b0097ff32166",
+      "name": "End",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1850,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "LinkedIn Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Post": {
+      "main": [
+        [
+          {
+            "node": "Time to Post?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Time to Post?": {
+      "main": [
+        [
+          {
+            "node": "Post to LinkedIn",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Not Yet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post to LinkedIn": {
+      "main": [
+        [
+          {
+            "node": "Track Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Track Post": {
+      "main": [
+        [
+          {
+            "node": "Wait 24h",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 24h": {
+      "main": [
+        [
+          {
+            "node": "Fetch Engagement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Engagement": {
+      "main": [
+        [
+          {
+            "node": "Parse Engagement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Engagement": {
+      "main": [
+        [
+          {
+            "node": "Weekly Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weekly Report": {
+      "main": [
+        [
+          {
+            "node": "End",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Not Yet": {
+      "main": [
+        [
+          {
+            "node": "End",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    "Gumroad",
+    "Production",
+    "Template",
+    "Oyekola Ololade"
+  ],
+  "pinData": {},
+  "staticData": null
+}
