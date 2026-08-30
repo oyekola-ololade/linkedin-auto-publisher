@@ -35,8 +35,18 @@ Publishes scheduled LinkedIn posts and rolls engagement into a weekly top-post S
 
 ## Architecture
 
-Open the [visual project page](./index.html#architecture) for the flow derived from the sanitized export.
+The diagram below represents the sanitized template flow. External services, credentials, and environment-specific identifiers must be configured before execution.
 
+```mermaid
+flowchart TD
+    A["Queued LinkedIn post trigger"] --> B{"Scheduled time reached?"}
+    B -->|No| C["Leave queued"]
+    B -->|Yes| D["Publish through UGC Posts API"]
+    D --> E["Store post ID"]
+    E --> F["Wait 24 hours"]
+    F --> G["Fetch engagement metrics"]
+    G --> H["Post top-post summary to Slack"]
+```
 
 ## Workflow
 
