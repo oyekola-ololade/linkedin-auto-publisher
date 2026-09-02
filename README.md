@@ -1,80 +1,77 @@
-# LinkedIn Auto-Publisher & Weekly Report
+# LinkedIn Publishing & Engagement Template
 
-Publishes scheduled LinkedIn posts and rolls engagement into a weekly top-post Slack report.
+> **Evidence status:** Legacy portfolio template — requires API and workflow repair before use.
 
-![n8n](https://img.shields.io/badge/-n8n-333?style=flat-square) ![LinkedIn API](https://img.shields.io/badge/-LinkedIn%20API-333?style=flat-square) ![Slack](https://img.shields.io/badge/-Slack-333?style=flat-square)
+This repository contains an importable n8n template exploring scheduled LinkedIn publishing and post-engagement reporting. It is retained as portfolio evidence of workflow decomposition, but the checked-in export should **not** be presented as a currently working LinkedIn automation.
+
 ![n8n](https://img.shields.io/badge/n8n-workflow-EA4B71?style=flat-square)
+![LinkedIn](https://img.shields.io/badge/LinkedIn-API-0A66C2?style=flat-square)
+![Slack](https://img.shields.io/badge/Slack-reporting-4A154B?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)
 
 ---
 
 **[Open the visual project page →](./index.html)**
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Architecture](#architecture)
-- [Workflow](#workflow)
-- [Tech Stack](#tech-stack)
-- [Demo status](#demo-status)
-- [Setup](#setup)
-- [Repository Structure](#repository-structure)
-- [Disclaimer](#disclaimer)
-
-## Overview
-
-**Trigger:** Webhook (LinkedIn schedule: content, media_url, scheduled_time)
-
-Publishes scheduled LinkedIn posts and rolls engagement into a weekly top-post Slack report.
-
-### Key Features
-
-- Time-gated scheduled publishing
-- Engagement tracking (reactions/comments/shares)
-- Weekly top-post reporting
-
-## Architecture
-
-The diagram below represents the sanitized template flow. External services, credentials, and environment-specific identifiers must be configured before execution.
+## Intended flow
 
 ```mermaid
 flowchart TD
-    A["Queued LinkedIn post trigger"] --> B{"Scheduled time reached?"}
-    B -->|No| C["Leave queued"]
-    B -->|Yes| D["Publish through UGC Posts API"]
-    D --> E["Store post ID"]
-    E --> F["Wait 24 hours"]
-    F --> G["Fetch engagement metrics"]
-    G --> H["Post top-post summary to Slack"]
+    A["Queued LinkedIn post"] --> B["Validate schedule and payload"]
+    B --> C["Publish through current LinkedIn Posts API"]
+    C --> D["Persist returned post URN"]
+    D --> E["Real wait / scheduled follow-up"]
+    E --> F["Fetch permitted engagement data"]
+    F --> G["Aggregate reporting window"]
+    G --> H["Send Slack summary"]
 ```
 
-## Workflow
+## What the checked-in export currently demonstrates
 
-1. LinkedIn schedule trigger receives the queued post
-2. Check whether the current time matches the scheduled time
-3. At the right time: publish via the LinkedIn UGC Posts API and track the post ID
-4. Wait 24 hours, then fetch reactions, comments, and shares
-5. Post a weekly top-post summary to Slack
+- webhook intake for post content and scheduled time;
+- a time comparison branch;
+- an HTTP publishing step;
+- post-ID capture;
+- placeholder engagement retrieval;
+- Slack reporting structure.
 
-## Tech Stack
+## Known gaps found in the audit
 
-- n8n
-- LinkedIn API
-- Slack
+The current `workflow/T27_LinkedIn_Auto_Publisher.json` export is **not ready for configured use**:
+
+1. It calls the legacy `v2/ugcPosts` publishing endpoint. LinkedIn's current documentation directs new integrations to the versioned **Posts API**, which replaces `ugcPosts`.
+2. The node named `Wait 24h` is a Set node that only writes the text `24 hours`; it does not actually pause execution.
+3. The workflow labels the final Slack action as a weekly report, but the export contains no weekly aggregation window or persisted comparison of multiple posts.
+4. Engagement retrieval is represented by a placeholder URL rather than a verified current LinkedIn endpoint and permission model.
+5. The workflow export still contains a historical `Production` tag even though this repository is a template and has no production-deployment evidence.
+
+These issues are documented deliberately rather than hidden behind a "production-ready" claim.
+
+## Repair path
+
+Before using this template:
+
+- migrate publishing to the current versioned LinkedIn Posts API;
+- add the required `Linkedin-Version` and Rest.li headers for the chosen supported API version;
+- replace the pseudo-wait with a real n8n Wait node or schedule-backed continuation;
+- persist post records if weekly comparison is required;
+- implement engagement retrieval only with permissions available to the authenticated LinkedIn application;
+- remove the historical `Production` workflow tag;
+- run configured end-to-end tests before activation.
 
 ## Demo status
 
-A configured live-run recording is not included yet. Credentials and service identifiers remain placeholders.
-
+No configured live-run recording is included. Credentials and service identifiers remain placeholders.
 
 ## Setup
 
-1. Import `workflow/T27_LinkedIn_Auto_Publisher.json` into your n8n instance (**Workflows → Import from File**).
-2. Replace every placeholder credential/URL in the workflow (e.g. `YOUR_..._API_KEY`, `YOUR_..._URL`) with your own service credentials.
-3. Activate the workflow and point the relevant integration (webhook source, scheduled trigger, etc.) at the generated webhook URL.
-4. Test with a sample payload before going live.
+The file can be imported for inspection from:
 
-## Repository Structure
+`workflow/T27_LinkedIn_Auto_Publisher.json`
+
+Do **not** activate it against a real account until the repair items above are completed and the current LinkedIn API requirements are verified.
+
+## Repository structure
 
 ```text
 .
@@ -86,18 +83,14 @@ A configured live-run recording is not included yet. Credentials and service ide
     └── T27_LinkedIn_Auto_Publisher.json
 ```
 
+## Evidence boundary
 
-## Disclaimer
-
-This workflow was built as a portfolio/template project to demonstrate n8n workflow automation and AI integration. API credentials and sensitive configuration have been removed before publication — replace all `YOUR_..._KEY` / `YOUR_..._URL` placeholders with your own before use.
+This is a legacy portfolio/template asset. It does not claim a live deployment, a verified LinkedIn publishing integration, automated weekly analytics, customer use, or business outcomes.
 
 ---
 
-Designed and engineered by
+Designed and engineered by **Oyekola Ololade**  
+AI Systems & Automation Engineer
 
-**Oyekola Ololade**
-
-AI Systems & Integration Engineer
-
-- LinkedIn: <http://linkedin.com/in/ololade-oyekola-5b1797397>
-- Email: <oyekolaololade69@gmail.com>
+- [LinkedIn](https://www.linkedin.com/in/ololade-oyekola-5b1797397/)
+- [GitHub](https://github.com/oyekola-ololade)
